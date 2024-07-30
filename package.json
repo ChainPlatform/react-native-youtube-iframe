@@ -1,6 +1,6 @@
 {
   "name": "@chainplatform/react-native-youtube-iframe",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "A simple wrapper around the youtube iframe js API for react native and react native web. this package fork from https://github.com/LonelyCpp/react-native-youtube-iframe and fix some error for Chain Platform",
   "main": "dist/index.js",
   "types": "index.d.ts",
