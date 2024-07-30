@@ -7,17 +7,17 @@ import React, {
   useCallback,
   useImperativeHandle,
 } from 'react';
-import {Linking, Platform, StyleSheet, View} from 'react-native';
-import {EventEmitter} from 'events';
-import {WebView} from './WebView';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { EventEmitter } from 'events';
+import { WebView } from './WebView';
 import {
   PLAYER_ERROR,
   PLAYER_STATES,
   DEFAULT_BASE_URL,
   CUSTOM_USER_AGENT,
 } from './constants';
-import {MAIN_SCRIPT, PLAYER_FUNCTIONS} from './PlayerScripts';
-import {deepComparePlayList} from './utils';
+import { MAIN_SCRIPT, PLAYER_FUNCTIONS } from './PlayerScripts';
+import { deepComparePlayList } from './utils';
 
 const YoutubeIframe = (props, ref) => {
   const {
@@ -35,16 +35,16 @@ const YoutubeIframe = (props, ref) => {
     baseUrlOverride,
     playbackRate = 1,
     contentScale = 1.0,
-    onError = _err => {},
-    onReady = _event => {},
+    onError = _err => { },
+    onReady = _event => { },
     playListStartIndex = 0,
     initialPlayerParams,
     allowWebViewZoom = false,
     forceAndroidAutoplay = false,
-    onChangeState = _event => {},
-    onFullScreenChange = _status => {},
-    onPlaybackQualityChange = _quality => {},
-    onPlaybackRateChange = _playbackRate => {},
+    onChangeState = _event => { },
+    onFullScreenChange = _status => { },
+    onPlaybackQualityChange = _quality => { },
+    onPlaybackRateChange = _playbackRate => { },
   } = props;
 
   const [playerReady, setPlayerReady] = useState(false);
@@ -61,7 +61,7 @@ const YoutubeIframe = (props, ref) => {
         return;
       }
 
-      const message = JSON.stringify({eventName, meta});
+      const message = JSON.stringify({ eventName, meta });
       webViewRef.current.postMessage(message);
     },
     [playerReady],
@@ -142,11 +142,11 @@ const YoutubeIframe = (props, ref) => {
   }, [mute, sendPostMessage]);
 
   useEffect(() => {
-    sendPostMessage('setVolume', {volume});
+    sendPostMessage('setVolume', { volume });
   }, [sendPostMessage, volume]);
 
   useEffect(() => {
-    sendPostMessage('setPlaybackRate', {playbackRate});
+    sendPostMessage('setPlaybackRate', { playbackRate });
   }, [sendPostMessage, playbackRate]);
 
   useEffect(() => {
@@ -185,31 +185,39 @@ const YoutubeIframe = (props, ref) => {
   const onWebMessage = useCallback(
     event => {
       try {
-        const message = JSON.parse(event.nativeEvent.data);
-
-        switch (message.eventType) {
-          case 'fullScreenChange':
-            onFullScreenChange(message.data);
-            break;
-          case 'playerStateChange':
-            onChangeState(PLAYER_STATES[message.data]);
-            break;
-          case 'playerReady':
-            onReady();
-            setPlayerReady(true);
-            break;
-          case 'playerQualityChange':
-            onPlaybackQualityChange(message.data);
-            break;
-          case 'playerError':
-            onError(PLAYER_ERROR[message.data]);
-            break;
-          case 'playbackRateChange':
-            onPlaybackRateChange(message.data);
-            break;
-          default:
-            eventEmitter.current.emit(message.eventType, message.data);
-            break;
+        console.log("useCallback event ", event);
+        let message;
+        if (typeof event.nativeEvent.data == "object") {
+          message = event.nativeEvent.data;
+        } else {
+          message = JSON.parse(event.nativeEvent.data);
+        }
+        const info = typeof message.eventType != "undefined" ? message.eventType : "";
+        if (info) {
+          switch (info) {
+            case 'fullScreenChange':
+              onFullScreenChange(message.data);
+              break;
+            case 'playerStateChange':
+              onChangeState(PLAYER_STATES[message.data]);
+              break;
+            case 'playerReady':
+              onReady();
+              setPlayerReady(true);
+              break;
+            case 'playerQualityChange':
+              onPlaybackQualityChange(message.data);
+              break;
+            case 'playerError':
+              onError(PLAYER_ERROR[message.data]);
+              break;
+            case 'playbackRateChange':
+              onPlaybackRateChange(message.data);
+              break;
+            default:
+              eventEmitter.current.emit(message.eventType, message.data);
+              break;
+          }
         }
       } catch (error) {
         console.warn('[rn-youtube-iframe]', error);
@@ -262,7 +270,7 @@ const YoutubeIframe = (props, ref) => {
     );
 
     if (useLocalHTML) {
-      const res = {html: ytScript.htmlString};
+      const res = { html: ytScript.htmlString };
       if (baseUrlOverride) {
         res.baseUrl = baseUrlOverride;
       }
@@ -272,11 +280,11 @@ const YoutubeIframe = (props, ref) => {
     const base = baseUrlOverride || DEFAULT_BASE_URL;
     const data = ytScript.urlEncodedJSON;
 
-    return {uri: base + '?data=' + data};
+    return { uri: base + '?data=' + data };
   }, [useLocalHTML, contentScale, baseUrlOverride, allowWebViewZoom]);
 
   return (
-    <View style={[{height, width}, viewContainerStyle]}>
+    <View style={[{ height, width }, viewContainerStyle]}>
       <WebView
         bounces={false}
         originWhitelist={['*']}
@@ -289,7 +297,7 @@ const YoutubeIframe = (props, ref) => {
         }
         userAgent={
           forceAndroidAutoplay
-            ? Platform.select({android: CUSTOM_USER_AGENT, ios: ''})
+            ? Platform.select({ android: CUSTOM_USER_AGENT, ios: '' })
             : ''
         }
         // props above this are override-able
@@ -308,7 +316,7 @@ const YoutubeIframe = (props, ref) => {
 };
 
 const styles = StyleSheet.create({
-  webView: {backgroundColor: 'transparent'},
+  webView: { backgroundColor: 'transparent' },
 });
 
 export default forwardRef(YoutubeIframe);

@@ -1,7 +1,7 @@
 {
-  "name": "react-native-youtube-iframe",
-  "version": "2.3.0",
-  "description": "A simple wrapper around the youtube iframe js API for react native",
+  "name": "@chainplatform/react-native-youtube-iframe",
+  "version": "2.3.1",
+  "description": "A simple wrapper around the youtube iframe js API for react native and react native web. this package fork from https://github.com/LonelyCpp/react-native-youtube-iframe and fix some error for Chain Platform",
   "main": "dist/index.js",
   "types": "index.d.ts",
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LonelyCpp/react-native-youtube-iframe.git"
+    "url": "git+https://github.com/ChainPlatform/react-native-youtube-iframe.git"
   },
   "keywords": [
     "react-native",
@@ -26,22 +26,23 @@
     "ui",
     "youtube",
     "youtube-iframe",
+    "@chainplatform/react-native-youtube-iframe",
+    "chainplatform",
     "iframe"
   ],
-  "author": "Ananthu P Kanive",
+  "author": "Chain Platform",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/LonelyCpp/react-native-youtube-iframe/issues"
+    "url": "https://github.com/ChainPlatform/react-native-youtube-iframe/issues"
   },
-  "homepage": "https://lonelycpp.github.io/react-native-youtube-iframe/",
   "peerDependencies": {
     "react": ">=16.8.6",
     "react-native": ">=0.60",
-    "react-native-web-webview": ">=1.0.2",
+    "@chainplatform/react-native-web-webview": ">=1.0.0",
     "react-native-webview": ">=7.0.0"
   },
   "peerDependenciesMeta": {
-    "react-native-web-webview": {
+    "@chainplatform/react-native-web-webview": {
       "optional": true
     },
     "react-native-webview": {

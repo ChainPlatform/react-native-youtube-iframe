@@ -1,4 +1,4 @@
-import {MUTE_MODE, PAUSE_MODE, PLAY_MODE, UNMUTE_MODE} from './constants';
+import { MUTE_MODE, PAUSE_MODE, PLAY_MODE, UNMUTE_MODE } from './constants';
 
 export const PLAYER_FUNCTIONS = {
   muteVideo: 'player.mute(); true;',
@@ -6,31 +6,31 @@ export const PLAYER_FUNCTIONS = {
   playVideo: 'player.playVideo(); true;',
   pauseVideo: 'player.pauseVideo(); true;',
   getVideoUrlScript: `
-window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'getVideoUrl', data: player.getVideoUrl()}));
+window.parent.postMessage(JSON.stringify({eventType: 'getVideoUrl', data: player.getVideoUrl()}));
 true;
   `,
   durationScript: `
-window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'getDuration', data: player.getDuration()}));
+window.parent.postMessage(JSON.stringify({eventType: 'getDuration', data: player.getDuration()}));
 true;
 `,
   currentTimeScript: `
-window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'getCurrentTime', data: player.getCurrentTime()}));
+window.parent.postMessage(JSON.stringify({eventType: 'getCurrentTime', data: player.getCurrentTime()}));
 true;
 `,
   isMutedScript: `
-window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'isMuted', data: player.isMuted()}));
+window.parent.postMessage(JSON.stringify({eventType: 'isMuted', data: player.isMuted()}));
 true;
 `,
   getVolumeScript: `
-window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'getVolume', data: player.getVolume()}));
+window.parent.postMessage(JSON.stringify({eventType: 'getVolume', data: player.getVolume()}));
 true;
 `,
   getPlaybackRateScript: `
-window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'getPlaybackRate', data: player.getPlaybackRate()}));
+window.parent.postMessage(JSON.stringify({eventType: 'getPlaybackRate', data: player.getPlaybackRate()}));
 true;
 `,
   getAvailablePlaybackRatesScript: `
-window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'getAvailablePlaybackRates', data: player.getAvailablePlaybackRates()}));
+window.parent.postMessage(JSON.stringify({eventType: 'getAvailablePlaybackRates', data: player.getAvailablePlaybackRates()}));
 true;
 `,
 
@@ -100,6 +100,7 @@ export const MAIN_SCRIPT = (
   } = initialPlayerParams;
 
   // _s postfix to refer to "safe"
+  const end_s = end;
   const rel_s = rel ? 1 : 0;
   const loop_s = loop ? 1 : 0;
   const videoId_s = videoId || '';
@@ -122,7 +123,7 @@ export const MAIN_SCRIPT = (
   }
 
   const safeData = {
-    end,
+    end_s,
     list,
     start,
     color,
@@ -144,147 +145,143 @@ export const MAIN_SCRIPT = (
 
   const urlEncodedJSON = encodeURI(JSON.stringify(safeData));
 
-  const listParam = list ? `list: '${list}',` : '';
-  const listTypeParam = listType ? `listType: '${list}',` : '';
-  const playlistParam = playList ? `playlist: '${playList}',` : '';
-
   const htmlString = `
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta
-      name="viewport"
-      content="width=device-width, ${scale}"
-    >
-    <style>
-      body {
+<meta name="viewport" content="width=device-width," />
+<style>
+    body {
         margin: 0;
-      }
-      .container {
+    }
+
+    .container {
         position: relative;
         width: 100%;
         height: 0;
         padding-bottom: 56.25%;
-      }
-      .video {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="video" id="player" />
-    </div>
+    }
 
-    <script>
-      var tag = document.createElement('script');
-
-      tag.src = "https://www.youtube.com/iframe_api";
-      var firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-      var player;
-      function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', {
-          width: '1000',
-          height: '1000',
-          videoId: '${videoId_s}',
-          playerVars: {
-            ${listParam}
-            ${listTypeParam}
-            ${playlistParam}
-
-            end: ${end},
-            rel: ${rel_s},
-            playsinline: 1,
-            loop: ${loop_s},
-            color: ${color},
-            start: ${start},
-            hl: ${playerLang},
-            controls: ${controls_s},
-            fs: ${preventFullScreen_s},
-            cc_lang_pref: '${cc_lang_pref_s}',
-            iv_load_policy: ${iv_load_policy},
-            modestbranding: ${modestbranding_s},
-            cc_load_policy: ${showClosedCaptions_s},
-          },
-          events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange,
-            'onError': onPlayerError,
-            'onPlaybackQualityChange': onPlaybackQualityChange,
-            'onPlaybackRateChange': onPlaybackRateChange,
-          }
-        });
-      }
-
-      function onPlayerError(event) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playerError', data: event.data}))
-      }
-
-      function onPlaybackRateChange(event) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playbackRateChange', data: event.data}))
-      }
-
-      function onPlaybackQualityChange(event) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playerQualityChange', data: event.data}))
-      }
-
-      function onPlayerReady(event) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playerReady'}))
-      }
-
-      var done = false;
-      function onPlayerStateChange(event) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'playerStateChange', data: event.data}))
-      }
-
-      var isFullScreen = false;
-      function onFullScreenChange() {
-        isFullScreen = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-        window.ReactNativeWebView.postMessage(JSON.stringify({eventType: 'fullScreenChange', data: Boolean(isFullScreen)}));
-      }
-
-      document.addEventListener('fullscreenchange', onFullScreenChange)
-      document.addEventListener('mozfullscreenchange', onFullScreenChange)
-      document.addEventListener('msfullscreenchange', onFullScreenChange)
-      document.addEventListener('webkitfullscreenchange', onFullScreenChange)
-
-      window.addEventListener('message', function (event) {
-        const {data} = event;
-
-        try {
-          const parsedData = JSON.parse(data);
-
-          switch (parsedData.eventName) {
-            case 'playVideo':
-              player.playVideo();
-              break;
-
-            case 'pauseVideo':
-              player.pauseVideo();
-              break;
-
-            case 'muteVideo':
-              player.mute();
-              break;
-
-            case 'unMuteVideo':
-              player.unMute();
-              break;
-          }
-        } catch (error) {
-          console.error('Error parsing data', event, error);
+    .video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+<div class="container">
+    <div class="video" id="player"></div>
+</div>
+<script>
+    const randomPlayerId = "player" + Date.now();
+    document.getElementById("player").id = randomPlayerId;
+    const parsedUrl = new URL(window.location.href),
+        UrlQueryData = parsedUrl.searchParams.get("data"),
+        {
+            end: end_s,
+            list: list,
+            color: color,
+            start: start,
+            rel_s: rel_s,
+            loop_s: loop_s,
+            listType: listType,
+            playerLang: playerLang,
+            playlist: playlist,
+            videoId_s: videoId_s,
+            controls_s: controls_s,
+            cc_lang_pref_s: cc_lang_pref_s,
+            contentScale_s: contentScale_s,
+            allowWebViewZoom: allowWebViewZoom,
+            modestbranding_s: modestbranding_s,
+            iv_load_policy: iv_load_policy,
+            preventFullScreen_s: preventFullScreen_s,
+            showClosedCaptions_s: showClosedCaptions_s,
+        } = JSON.parse(UrlQueryData);
+    function sendMessageToRN(e) {
+        console.log("sendMessageToRN ", msg);
+        if (typeof window.ReactNativeWebView != "undefined" && typeof window.ReactNativeWebView.postMessage == "function") {
+            window.ReactNativeWebView.postMessage(JSON.stringify(e));
+        } else {
+            window.parent.postMessage(JSON.stringify(e));
         }
-      });
+    }
+    let metaString = "";
+    contentScale_s && (metaString += 'initial-scale=${contentScale_s}, '), allowWebViewZoom || (metaString += 'maximum-scale=${contentScale_s}');
+    const viewport = document.querySelector("meta[name=viewport]");
+    viewport.setAttribute("content", "width=device-width, " + metaString);
+    var tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    var player,
+        firstScriptTag = document.getElementsByTagName("script")[0];
+    function onYouTubeIframeAPIReady() {
+            player = new YT.Player(randomPlayerId, {
+                width: "1000",
+                height: "1000",
+                videoId: '${videoId_s}',
+                playerVars: {
+                    end: ${end_s},
+                    rel: ${rel_s},
+                    list: ${list},
+                    color: ${color},
+                    loop: ${loop_s},
+                    start: ${start},
+                    hl: ${playerLang},
+                    controls: ${controls_s},
+                    fs: ${preventFullScreen_s},
+                    cc_lang_pref: '${cc_lang_pref_s}',
+                    iv_load_policy: ${iv_load_policy},
+                    modestbranding: ${modestbranding_s},
+                    cc_load_policy: ${showClosedCaptions_s},
+                    playsinline: 1,
+                    playlist: ${playlist},
+                    listType: ${listType},
+                },
+                events: { onReady: onPlayerReady, onError: onPlayerError, onStateChange: onPlayerStateChange, onPlaybackRateChange: onPlaybackRateChange, onPlaybackQualityChange: onPlaybackQualityChange },
+            });
+        }
+        function onPlayerError(e) {
+            sendMessageToRN({ eventType: "playerError", data: e.data });
+        }
+        function onPlaybackRateChange(e) {
+            sendMessageToRN({ eventType: "playbackRateChange", data: e.data });
+        }
+        function onPlaybackQualityChange(e) {
+            sendMessageToRN({ eventType: "playerQualityChange", data: e.data });
+        }
+        function onPlayerReady(e) {
+            sendMessageToRN({ eventType: "playerReady" });
+        }
+        function onPlayerStateChange(e) {
+            sendMessageToRN({ eventType: "playerStateChange", data: e.data });
+        }
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        var isFullScreen = !1;
+        function onFullScreenChange() {
+            (isFullScreen = document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement), sendMessageToRN({ eventType: "fullScreenChange", data: Boolean(isFullScreen) });
+        }
+        document.addEventListener("fullscreenchange", onFullScreenChange),
+            document.addEventListener("msfullscreenchange", onFullScreenChange),
+            document.addEventListener("mozfullscreenchange", onFullScreenChange),
+            document.addEventListener("webkitfullscreenchange", onFullScreenChange),
+            window.addEventListener("message", function (e) {
+                var { data: e } = e;
+                switch (e) {
+                    case "playVideo":
+                        player.playVideo();
+                        break;
+                    case "pauseVideo":
+                        player.pauseVideo();
+                        break;
+                    case "muteVideo":
+                        player.mute();
+                        break;
+                    case "unMuteVideo":
+                        player.unMute();
+                }
+            });
     </script>
   </body>
 </html>
 `;
 
-  return {htmlString, urlEncodedJSON};
+  return { htmlString, urlEncodedJSON };
 };

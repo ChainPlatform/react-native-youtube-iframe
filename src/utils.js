@@ -17,4 +17,4 @@ const deepComparePlayList = (lastPlayList, playList) => {
   return false;
 };
 
-export {deepComparePlayList};
+export { deepComparePlayList };
